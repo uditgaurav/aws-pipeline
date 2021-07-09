@@ -118,9 +118,7 @@ jobs:
         if: always()
         run: |
           aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_ONE }} ${{ env.INSTANCE_TWO }}
-
-
-
+          
   AWS_EBS_Loss:
     runs-on: ubuntu-latest
     steps:
