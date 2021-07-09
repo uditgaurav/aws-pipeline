@@ -68,7 +68,6 @@ jobs:
           echo "inst1: ${instance_list[0]} inst2: ${instance_list[1]}"
           echo "INSTANCE_ONE=${instance_list[0]}" >> $GITHUB_ENV
           echo "INSTANCE_TWO=${instance_list[1]}" >> $GITHUB_ENV
-          echo "INSTANCE_TAG=runNumber:${{ github.run_number }}" >> $GITHUB_ENV
           
       - name: Litmus Infra Setup
         if: always()
@@ -95,5 +94,4 @@ jobs:
       - name: Terminate target EC2 instances
         if: always()
         run: |
-          aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_ONE }} --region us-west-1
-          aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_TWO }} --region us-west-1
+          aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_ONE }} ${{ env.INSTANCE_TWO }} --region us-west-1
