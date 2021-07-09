@@ -15,7 +15,7 @@ on:
         default: "Always"
   
 jobs:
-  AWS_EC2_Terminate:
+  AWS_EC2_Terminate_By_ID_And_Tag:
     runs-on: ubuntu-latest
     steps:
     
@@ -68,7 +68,7 @@ jobs:
         run: |
           aws ec2 run-instances \
           --image-id ami-0d382e80be7ffdae5 \
-          --count 2 --instance-type t2.nano \
+          --count 2 --instance-type t2.small \
           --key-name udit-litmus-e2e \
           --security-group-ids sg-06925d6218d07e795 \
           --subnet-id subnet-9c2ba8fa \
@@ -118,8 +118,8 @@ jobs:
         if: always()
         run: |
           aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_ONE }} ${{ env.INSTANCE_TWO }}
-          
-  AWS_EBS_Loss:
+
+  AWS_EBS_Loss_By_ID_And_Tag:
     runs-on: ubuntu-latest
     steps:
     
@@ -173,7 +173,7 @@ jobs:
           aws ec2 run-instances \
           --image-id ami-0d382e80be7ffdae5 \
           --count 1 \
-          --instance-type t2.nano \
+          --instance-type t2.small \
           --key-name udit-litmus-e2e \
           --security-group-ids sg-06925d6218d07e795 \
           --subnet-id subnet-9c2ba8fa \
