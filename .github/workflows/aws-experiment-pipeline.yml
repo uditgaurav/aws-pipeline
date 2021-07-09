@@ -244,7 +244,7 @@ jobs:
         if: always()
         run: |
           for i in range {0..30};do
-            instance_status=$(aws ec2 describe-instance-status --instance-id i-027c447e08f8f0af3 -query 'InstanceStatuses[*].InstanceState.Name' --output text)
+            instance_status=$(aws ec2 describe-instance-status --instance-id i-027c447e08f8f0af3 --query 'InstanceStatuses[*].InstanceState.Name' --output text)
             echo "ec2 instance status is: ${instance_status}"
             if [ -z "$instance_status" ];then
               echo "The ec2 instance is terminated"
