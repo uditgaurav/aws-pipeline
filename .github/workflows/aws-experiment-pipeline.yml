@@ -192,20 +192,13 @@ jobs:
       - name: Get the ec2 instance id
         if: always()
         run: |
-          instances=$(aws ec2 describe-instances \
-          --filters Name=tag-value,Values=${{ github.run_number }} Name=instance-state-name,Values=pending,running \
-          --region us-west-1 \
-          --query 'Reservations[*].Instances[*].{Instance:InstanceId}' \
-          --output text)
+          instances=$(aws ec2 describe-instances --filters Name=tag-value,Values=${{ github.run_number }} Name=instance-state-name,Values=pending,running --region us-west-1 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text)
           instance_list=($instances)
           echo "INSTANCE_ONE=${instance_list[0]}" >> $GITHUB_ENV
           
       - name: Get the EBS volume id
         run: |
-          volumes=$(aws ec2 describe-volumes \
-          --filters Name=tag-value,Values=${{ github.run_number }} Name=availability-zone,Values=us-west-1b \
-          --region us-west-1 --query "Volumes[*].{ID:VolumeId}" \
-          --output text)
+          volumes=$(aws ec2 describe-volumes --filters Name=tag-value,Values=${{ github.run_number }} Name=availability-zone,Values=us-west-1b --query "Volumes[*].{ID:VolumeId}" --output text)
           echo "VOLUME_ID=${volumes}" >> $GITHUB_ENV         
           
       - name: Litmus Infra Setup
@@ -218,11 +211,7 @@ jobs:
 
       - name: Attach the target ebs volume to the ec2 instance
         if: always()
-        run: aws ec2 attach-volume \
-          --volume-id ${{ env.VOLUME_ID }} \
-          --instance-id ${{ env.INSTANCE_ONE }}  \
-          --device /dev/sdf \
-          --region us-west-1
+        run: aws ec2 attach-volume --volume-id ${{ env.VOLUME_ID }} --instance-id ${{ env.INSTANCE_ONE }} --device /dev/sdf
 
       - name: Run EBS Loss By ID experiment in serial & parallel mode
         if: always()
@@ -252,13 +241,10 @@ jobs:
           aws ec2 terminate-instances --instance-ids ${{ env.INSTANCE_ONE }} --region us-west-1
 
       - name: Waiting for ec2 instance to get terminate
+        if: always()
         run: |
           for i in range {0..30};do
-            instance_status=$(aws ec2 describe-instance-status \
-            --instance-id i-027c447e08f8f0af3 \
-            --region us-west-1 \
-            --query 'InstanceStatuses[*].InstanceState.Name' \
-            --output text)
+            instance_status=$(aws ec2 describe-instance-status --instance-id i-027c447e08f8f0af3 -query 'InstanceStatuses[*].InstanceState.Name' --output text)
             echo "ec2 instance status is: ${instance_status}"
             if [ -z "$instance_status" ];then
               echo "The ec2 instance is terminated"
@@ -268,5 +254,6 @@ jobs:
           done
 
       - name: Delete EBS Volume
+        if: always()
         run: |
           aws ec2 delete-volume --volume-id "${{ env.VOLUME_ID }}" --region us-west-1
