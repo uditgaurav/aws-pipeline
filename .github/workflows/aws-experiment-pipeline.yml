@@ -73,12 +73,12 @@ jobs:
           --security-group-ids sg-06925d6218d07e795 \
           --subnet-id subnet-9c2ba8fa \
           --region us-west-1 \
-          --tag-specifications 'ResourceType=instance,Tags=[{Key=runNumber,Value=${{ github.run_number }}}]'
+          --tag-specifications 'ResourceType=instance,Tags=[{Key=runNumber,Value=ec2_${{ github.run_number }}}]'
           
       - name: Get the target instance name
         if: always()
         run: |
-          instances=$(aws ec2 describe-instances --filters Name=tag-value,Values=${{ github.run_number }} Name=instance-state-name,Values=pending,running --region us-west-1 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text)
+          instances=$(aws ec2 describe-instances --filters Name=tag-value,Values=ec2_${{ github.run_number }} Name=instance-state-name,Values=pending,running --region us-west-1 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text)
           instance_list=($instances)
           echo "inst1: ${instance_list[0]} inst2: ${instance_list[1]}"
           echo "INSTANCE_ONE=${instance_list[0]}" >> $GITHUB_ENV
@@ -107,7 +107,7 @@ jobs:
         if: always()
         env:
           KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-          EC2_INSTANCE_TAG: "runNumber:${{ github.run_number }}"
+          EC2_INSTANCE_TAG: "runNumber:ec2_${{ github.run_number }}"
           REGION: us-west-1
           GO_EXPERIMENT_IMAGE: "${{ github.event.inputs.goExperimentImage }}"
           EXPERIMENT_IMAGE_PULL_POLICY: "${{ github.event.inputs.experimentImagePullPolicy }}"
@@ -179,7 +179,7 @@ jobs:
           --subnet-id subnet-9c2ba8fa \
           --placement AvailabilityZone=us-west-1b \
           --region us-west-1 \
-          --tag-specifications 'ResourceType=instance,Tags=[{Key=runNumber,Value=${{ github.run_number }}}]'
+          --tag-specifications 'ResourceType=instance,Tags=[{Key=runNumber,Value=ebs_${{ github.run_number }}}]'
 
       - name: Create EBS volumes
         if: always()
@@ -189,18 +189,18 @@ jobs:
           --size 4 \
           --availability-zone us-west-1b \
           --region us-west-1 \
-          --tag-specifications 'ResourceType=volume,Tags=[{Key=runNumber,Value=${{ github.run_number }}}]'
+          --tag-specifications 'ResourceType=volume,Tags=[{Key=runNumber,Value=ebs_${{ github.run_number }}}]'
           
       - name: Get the EC2 instance ID
         if: always()
         run: |
-          instances=$(aws ec2 describe-instances --filters Name=tag-value,Values=${{ github.run_number }} Name=instance-state-name,Values=pending,running --region us-west-1 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text)
+          instances=$(aws ec2 describe-instances --filters Name=tag-value,Values=ebs_${{ github.run_number }} Name=instance-state-name,Values=pending,running --region us-west-1 --query 'Reservations[*].Instances[*].{Instance:InstanceId}' --output text)
           instance_list=($instances)
           echo "INSTANCE_ONE=${instance_list[0]}" >> $GITHUB_ENV
           
       - name: Get the EBS volume ID
         run: |
-          volumes=$(aws ec2 describe-volumes --filters Name=tag-value,Values=${{ github.run_number }} Name=availability-zone,Values=us-west-1b --query "Volumes[*].{ID:VolumeId}" --output text)
+          volumes=$(aws ec2 describe-volumes --filters Name=tag-value,Values=ebs_${{ github.run_number }} Name=availability-zone,Values=us-west-1b --query "Volumes[*].{ID:VolumeId}" --output text)
           echo "VOLUME_ID=${volumes}" >> $GITHUB_ENV         
           
       - name: Litmus Infra Setup
@@ -230,7 +230,7 @@ jobs:
         if: always()
         env:
           KUBECONFIG: /etc/rancher/k3s/k3s.yaml
-          EBS_VOLUME_TAG: "runNumber:${{ github.run_number }}"
+          EBS_VOLUME_TAG: "runNumber:ebs_${{ github.run_number }}"
           REGION: us-west-1
           GO_EXPERIMENT_IMAGE: "${{ github.event.inputs.goExperimentImage }}"
           EXPERIMENT_IMAGE_PULL_POLICY: "${{ github.event.inputs.experimentImagePullPolicy }}"
